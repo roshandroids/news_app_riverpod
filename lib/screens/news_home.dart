@@ -93,8 +93,8 @@ class _NewsHomeState extends State<NewsHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-            onPressed: () => chooseCountry, icon: const Icon(Icons.flag)),
+        leading:
+            IconButton(onPressed: chooseCountry, icon: const Icon(Icons.flag)),
         actions: [
           IconButton(
             onPressed: () {
