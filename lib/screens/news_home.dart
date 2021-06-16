@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:news_app_riverpod/controllers/news_controller.dart';
+import 'package:news_app_riverpod/models/top_headlines.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -20,26 +21,39 @@ class _NewsHomeState extends State<NewsHome> {
 
   void _onRefresh() async {
     await refreshController.requestRefresh();
-    await context.read(newsController).fetchNews(countryCode: countryCode);
+    await context.read(newsController).fetchNews(
+        countryCode: selectedCountry?.countryCode.toLowerCase(),
+        data: null,
+        page: 1,
+        size: 10);
 
     refreshController.refreshCompleted();
   }
 
-  void _onLoading() async {
-    // monitor network fetch
-    await Future<void>.delayed(const Duration(seconds: 2));
-    // if failed,use loadFailed(),if no data return,use LoadNodata()
+  void _onLoading({List<Articles>? data}) async {
+    await context.read(newsController).fetchNews(
+          data: data,
+          countryCode: selectedCountry?.countryCode.toLowerCase(),
+          page: page + 1,
+          size: size,
+        );
 
     refreshController.loadComplete();
   }
 
   @override
   void initState() {
-    context.read(newsController).fetchNews();
+    context.read(newsController).fetchNews(
+        countryCode: selectedCountry?.countryCode.toLowerCase(),
+        page: 1,
+        size: 10);
     super.initState();
   }
 
-  String? countryCode;
+  Country? selectedCountry;
+  int page = 1;
+  int size = 10;
+
   void chooseCountry() async {
     showCountryPicker(
       context: context,
@@ -65,6 +79,9 @@ class _NewsHomeState extends State<NewsHome> {
         ),
       ),
       onSelect: (Country country) {
+        setState(() {
+          selectedCountry = country;
+        });
         context
             .read(newsController)
             .fetchNews(countryCode: country.countryCode.toLowerCase());
@@ -77,7 +94,7 @@ class _NewsHomeState extends State<NewsHome> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-            onPressed: () => chooseCountry(), icon: const Icon(Icons.flag)),
+            onPressed: () => chooseCountry, icon: const Icon(Icons.flag)),
         actions: [
           IconButton(
             onPressed: () {
@@ -86,6 +103,8 @@ class _NewsHomeState extends State<NewsHome> {
             icon: const Icon(Icons.refresh),
           ),
         ],
+        centerTitle: true,
+        title: Text(selectedCountry?.name ?? ''),
       ),
       body: HookBuilder(
         builder: (context) {
@@ -94,21 +113,21 @@ class _NewsHomeState extends State<NewsHome> {
             loading: (_) => const Center(child: CircularProgressIndicator()),
             orElse: () => const SizedBox(),
             success: (data) {
-              if (data.data!.articles.isNotEmpty) {
+              if (data.data!.isNotEmpty) {
                 return SmartRefresher(
                   enablePullDown: true,
                   enablePullUp: true,
                   controller: refreshController,
                   onRefresh: _onRefresh,
-                  onLoading: _onLoading,
+                  onLoading: () => _onLoading(data: data.data),
                   child: ListView.separated(
                     padding: const EdgeInsets.all(20),
-                    itemCount: data.data!.articles.length,
+                    itemCount: data.data!.length,
                     separatorBuilder: (context, index) {
                       return const Divider();
                     },
                     itemBuilder: (context, item) {
-                      final value = data.data?.articles[item];
+                      final value = data.data![item];
 
                       return ListTile(
                         leading: CircleAvatar(
@@ -116,7 +135,7 @@ class _NewsHomeState extends State<NewsHome> {
                               .withOpacity(0.3),
                           radius: 30,
                           child: CachedNetworkImage(
-                            imageUrl: value?.urlToImage ?? '',
+                            imageUrl: value.urlToImage ?? '',
                             placeholder: (context, url) => Shimmer.fromColors(
                               baseColor: Colors.grey[300]!,
                               highlightColor: Colors.grey[100]!,
@@ -138,7 +157,7 @@ class _NewsHomeState extends State<NewsHome> {
                             },
                           ),
                         ),
-                        title: Text(value?.title ?? ''),
+                        title: Text(value.title ?? ''),
                       );
                     },
                   ),
@@ -146,6 +165,8 @@ class _NewsHomeState extends State<NewsHome> {
               } else {
                 return Center(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text('No data for selected country !'),
                       ElevatedButton(

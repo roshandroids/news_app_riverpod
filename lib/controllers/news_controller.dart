@@ -9,7 +9,7 @@ final newsController = StateNotifierProvider.autoDispose((ref) {
   return NewsController(ref.read);
 });
 
-class NewsController extends BaseNotifier<TopHeadlines> {
+class NewsController extends BaseNotifier<List<Articles>> {
   NewsController(
     this._read,
   ) : super(state: const BaseState.initial());
@@ -18,12 +18,25 @@ class NewsController extends BaseNotifier<TopHeadlines> {
 //**similar to inject<get> in bloc */
   INewsRepository get _getNews => _read(newsRepository);
   Future<void> fetchNews({
+    List<Articles>? data,
     String? countryCode,
+    int? page,
+    int? size,
   }) async {
     state = const BaseState.loading();
 
-    final response = await _getNews.getNews(countryCode: countryCode ?? 'us');
-    state = response.fold((message) => BaseState.success(data: message),
-        (error) => BaseState.error(error));
+    final response = await _getNews.getNews(
+      countryCode: countryCode ?? 'us',
+      size: size ?? 10,
+      page: page ?? 1,
+    );
+    state = response.fold(
+      (message) => BaseState.success(
+        data: data == null ? message.articles : data + message.articles,
+      ),
+      (error) => BaseState.error(
+        error,
+      ),
+    );
   }
 }
