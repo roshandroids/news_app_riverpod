@@ -1,0 +1,1 @@
+// const String Hive_News_Box

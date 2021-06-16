@@ -9,7 +9,9 @@ final newsRepository = Provider<INewsRepository>((ref) {
 });
 
 abstract class INewsRepository {
-  Future<Either<TopHeadlines, Failure>> getNews();
+  Future<Either<TopHeadlines, Failure>> getNews({
+    required String countryCode,
+  });
 }
 
 class NewsRepository implements INewsRepository {
@@ -17,10 +19,12 @@ class NewsRepository implements INewsRepository {
   final Reader _read;
   final Dio _dio = Dio();
   @override
-  Future<Either<TopHeadlines, Failure>> getNews() async {
+  Future<Either<TopHeadlines, Failure>> getNews({
+    required String countryCode,
+  }) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
-          'https://newsapi.org/v2/top-headlines?country=us&apiKey=61a99634846e4eaa9e22e83114fea66e');
+          'https://newsapi.org/v2/top-headlines?country=$countryCode&apiKey=61a99634846e4eaa9e22e83114fea66e');
 
       final result = TopHeadlines.fromJson(response.data!);
       return Left(result);

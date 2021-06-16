@@ -9,7 +9,7 @@ analyzer:
     - "**/*.gr.dart"
   strong-mode:
     implicit-casts: false
-    implicit-dynamic: false
+    # implicit-dynamic: false
   errors:
     missing_required_param: error
     missing_return: error
