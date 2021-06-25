@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:news_app_riverpod/controllers/news_controller.dart';
+import 'package:news_app_riverpod/controllers/theme_controller.dart';
 import 'package:news_app_riverpod/models/top_headlines.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shimmer/shimmer.dart';
@@ -70,6 +71,7 @@ class _NewsHomeState extends State<NewsHome> {
         inputDecoration: InputDecoration(
           labelText: 'Search',
           hintText: 'Start typing to search',
+          hintStyle: Theme.of(context).textTheme.bodyText1,
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
             borderSide: BorderSide(
@@ -93,8 +95,7 @@ class _NewsHomeState extends State<NewsHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading:
-            IconButton(onPressed: chooseCountry, icon: const Icon(Icons.flag)),
+        leading: IconButton(onPressed: () {}, icon: const Icon(Icons.flag)),
         actions: [
           IconButton(
             onPressed: () {
